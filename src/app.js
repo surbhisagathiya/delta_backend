@@ -2,11 +2,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
-import seedAdmin from "./utils/seedAdmin.js";
 import authRoute from "./routes/authRoutes.js";
 import userRoute from "./routes/userRoutes.js";
-import errorHandler from "./middlewares/errorMiddleware.js";
 
 dotenv.config();
 
@@ -20,14 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // CORS setup: allow frontend + Postman/curl
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5000"];
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman / curl
-    if (allowedOrigins.indexOf(origin) === -1) {
-      console.error("[CORS] Forbidden origin:", origin);
-      return callback(new Error("CORS forbidden"), false);
-    }
-    return callback(null, true);
-  },
+  origin: allowedOrigins,
   credentials: true,
 }));
 
