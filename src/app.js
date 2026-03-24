@@ -2,8 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import authRoute from "./routes/authRoutes.js";
-import userRoute from "./routes/userRoutes.js";
+import index from "../src/routes/index.js";
 
 dotenv.config();
 
@@ -15,7 +14,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 // CORS setup: allow frontend + Postman/curl
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5000"];
+const allowedOrigins = ["http://localhost:5173", "http://localhost:3000"];
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
@@ -28,8 +27,8 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use("/api/auth", authRoute);
-app.use("/api/users", userRoute);
+app.use("/api", index);
+
 
 // Health check
 app.get("/", (_, res) => {
