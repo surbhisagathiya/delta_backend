@@ -113,7 +113,6 @@ export const assignUser = async (req, res, next) => {
 //get all admin user data & case handle
 export const getUsersData = async (req, res, next) => {
   try {
-    console.log("Fetching admin data...");
     if (req.user.role !== "admin") {
       return res.status(403).json({ message: "Access denied" });
     }

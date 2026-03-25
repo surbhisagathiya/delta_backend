@@ -22,6 +22,7 @@ app.use(cors({
 
 // Debugging: log all requests
 app.use((req, res, next) => {
+  res.set("cache-control", "no-store");
   console.log(`[App] ${req.method} ${req.originalUrl} - Body:`, req.body);
   next();
 });

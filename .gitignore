@@ -16,3 +16,5 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+personal.txt
