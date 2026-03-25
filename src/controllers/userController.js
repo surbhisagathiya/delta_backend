@@ -1,4 +1,5 @@
 // src/controllers/userController.js
+import Settings from "../models/Settings.js";
 import User from "../models/User.js";
 import { hashPassword } from "../utils/common.js";
 import jwt from "jsonwebtoken";
@@ -123,8 +124,59 @@ export const getUsersData = async (req, res, next) => {
       total: users.length,
       data: users,
     });
-
   } catch (err) {
     next(err);
+  }
+};
+
+export const getLeverage = async (req, res) => {
+  try {
+    let settings = await Settings.findOne();
+
+    if (!settings) {
+      settings = await Settings.create({ leverage: 15 });
+    }
+
+    res.status(200).json({
+      success: true,
+      leverage: settings.leverage,
+    });
+  } catch (error) {
+    console.error("Error fetching leverage:", error);
+    res.status(500).json({
+      success: false,
+      error: { message: error.message || "Server error" },
+    });
+  }
+};
+
+//edit leverage put request
+export const editLaverage = async (req, res) => {
+  try {
+    const { leverage } = req.body;
+
+    if (leverage === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "Leverage value is required" },
+      });
+    }
+
+    let settings = await Settings.findOne();
+
+    settings.leverage = leverage;
+    await settings.save();
+
+    res.status(200).json({
+      success: true,
+      leverage: settings.leverage,
+      message: "Leverage updated successfully",
+    });
+  } catch (error) {
+    console.error("Error updating leverage:", error);
+    res.status(500).json({
+      success: false,
+      error: { message: error.message || "Server error" },
+    });
   }
 };

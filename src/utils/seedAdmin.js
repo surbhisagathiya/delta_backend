@@ -1,4 +1,5 @@
 // src/utils/seedAdmin.js
+import Settings from "../models/Settings.js";
 import User from "../models/User.js";
 
 const seedAdmin = async () => {
@@ -12,6 +13,17 @@ const seedAdmin = async () => {
         role: "admin",
       });
       console.log("Default admin created:", admin.email);
+    }
+
+    const settingsExists = await Settings.findOne();
+    if (!settingsExists) {
+      const defaultSettings = await Settings.create({
+        leverage: 15,
+      });
+      console.log(
+        "Default settings created with leverage:",
+        defaultSettings.leverage,
+      );
     }
   } catch (err) {
     console.error("Error seeding admin:", err);

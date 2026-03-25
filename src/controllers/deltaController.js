@@ -35,10 +35,10 @@ export const getTicker = async (req, res, next) => {
     const mapped = tickers.map((ticker) => ({
       symbol: ticker.symbol,
       last: ticker.close,
-      changePercent: (
-        ((ticker.close - ticker.open) / ticker.open) *
-        100
-      ).toFixed(2),
+      changePercent:
+        ticker.open && ticker.close
+          ? `${(((ticker.close - ticker.open) / ticker.open) * 100).toFixed(2)}`
+          : "+0.00",
       mark: Number(ticker.mark_price).toFixed(2),
       bid: ticker.quotes?.best_bid,
       ask: ticker.quotes?.best_ask,

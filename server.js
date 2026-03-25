@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 5000;
 
 connectDB()
   .then(() => {
-    console.log("[Server] MongoDB connected");
+    console.log(`[Server] MongoDB connected on port ${PORT}`);
 
     // ✅ ADD THIS (chain Delta)
     return connectDelta();
