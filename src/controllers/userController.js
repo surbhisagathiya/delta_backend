@@ -1,13 +1,38 @@
 // src/controllers/userController.js
+import Account from "../models/Account.js";
 import Settings from "../models/Settings.js";
 import User from "../models/User.js";
 import { hashPassword } from "../utils/common.js";
 import jwt from "jsonwebtoken";
 
-// @desc Get current user
+// @desc Get current user login user
 // @route GET /api/me
 export const getMe = async (req, res) => {
-  res.json(req.user);
+  try {
+    const id = req.user.id;
+
+    const user = await User.findById(id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User get successfully",
+      data: user,
+    });
+  } catch (err) {
+    console.log("err", err);
+
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
 };
 
 // @desc Get all users (Admin only)
@@ -118,11 +143,29 @@ export const getUsersData = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied" });
     }
 
+    // 1️⃣ Get all users
     const users = await User.find({ role: "user" }).select("-password");
 
+    // 2️⃣ Get all accounts assigned to users
+    const accounts = await Account.find({
+      assignedTo: { $ne: null },
+    });
+
+    // 3️⃣ Map accounts to users
+    const usersWithAccounts = users.map((user) => {
+      const userAccounts = accounts.filter(
+        (acc) => acc.assignedTo?.toString() === user._id.toString(),
+      );
+
+      return {
+        ...user.toObject(),
+        accounts: userAccounts,
+      };
+    });
+
     res.status(200).json({
-      total: users.length,
-      data: users,
+      total: usersWithAccounts.length,
+      data: usersWithAccounts,
     });
   } catch (err) {
     next(err);

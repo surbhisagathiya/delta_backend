@@ -4,9 +4,18 @@ import Account from "../models/Account.js";
 import User from "../models/User.js";
 import crypto from "crypto";
 
-export const getAccounts = async (req, res, next) => {
+export const getAdminAccounts = async (req, res, next) => {
   try {
-    const accountList = await Account.find().populate("assignedTo", "name email");
+    const admin = await User.findOne({ role: "admin" });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    const accountList = await Account.find({
+      assignedTo: admin._id,
+    }).populate("assignedTo", "name email");
+
     console.log("accountList", accountList);
 
     const DELTA_API_BASE = process.env.DELTA_API_BASE;
@@ -40,13 +49,13 @@ export const getAccounts = async (req, res, next) => {
           if (response.data.success && Array.isArray(response.data.result)) {
             balance = response.data.result.reduce(
               (sum, asset) => sum + parseFloat(asset.balance),
-              0
+              0,
             );
           }
         } catch (err) {
           console.error(
             `Error fetching Delta balance for account ${account.name}:`,
-            err.message
+            err.message,
           );
         }
 
@@ -61,7 +70,7 @@ export const getAccounts = async (req, res, next) => {
           createdAt: account.createdAt,
           updatedAt: account.updatedAt,
         };
-      })
+      }),
     );
 
     console.log("\nAll accounts processed. Sending response.");
@@ -76,6 +85,7 @@ export const getAccounts = async (req, res, next) => {
     next(err);
   }
 };
+
 export const upsertAccount = async (req, res, next) => {
   try {
     const { id, name, apiKey, assignedTo } = req.body;
@@ -128,5 +138,62 @@ export const deleteAccount = async (req, res, next) => {
       .json({ success: true, message: "Account deleted successfully" });
   } catch (err) {
     next(err);
+  }
+};
+
+//assign account to user
+export const assignAccount = async (req, res) => {
+  try {
+    const { accountId, userId } = req.body;
+    console.log("acc", accountId, userId);
+
+    if (!accountId || !userId) {
+      return res
+        .status(400)
+        .json({ message: "accountId and userId are required" });
+    }
+
+    const account = await Account.findById(accountId);
+    if (!account) return res.status(404).json({ message: "Account not found" });
+
+    account.assignedTo = userId;
+    await account.save();
+
+    res.status(200).json({ success: true, data: account });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+//un assign account to user
+export const unAssignAccount = async (req, res) => {
+  try {
+    const { accountId } = req.body;
+    console.log("acc", accountId);
+    const admin = await User.findOne({ role: "admin" });
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    const adminId = admin?._id;
+
+    if (!accountId) {
+      return res.status(400).json({ message: "accountId are required" });
+    }
+
+    const account = await Account.findById(accountId);
+    if (!account) return res.status(404).json({ message: "Account not found" });
+
+    account.assignedTo = adminId;
+    await account.save();
+
+    res
+      .status(200)
+      .json({ success: true, data:account, message: "user assign to admin" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

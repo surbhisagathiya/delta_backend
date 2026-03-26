@@ -16,7 +16,7 @@ const accountSchema = new mongoose.Schema(
     },
     secretKey: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
     },
     balance: {
